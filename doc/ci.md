@@ -4,6 +4,22 @@ The project uses GitHub Actions for continuous integration and delivery. Workflo
 
 Security policy for public-repo CI is defined in [Repository Security and Automation Governance](repository_security_spec.md) and [CI Security Best Practices](ci_security_best_practices.md).
 
+## Private Go setup action
+
+Go jobs use [setup-go-better](https://github.com/nicoheidtke/setup-go-better) through an
+authenticated checkout pinned to a bundled distribution commit. Add the repository Actions secret
+`SETUP_GO_BETTER_TOKEN` using a fine-grained personal access token whose repository access is limited
+to `nicoheidtke/setup-go-better`, with **Contents: Read-only** permission. The checkout does not persist
+the token in Git configuration. The default `GITHUB_TOKEN` cannot read this private repository.
+
+This fork's workflows are manually dispatched while they are being adapted. Dispatch only trusted
+refs: these jobs receive the private-action token and can read the action's code. Before restoring
+pull request triggers, provide a setup path that works without repository secrets for untrusted and
+Dependabot pull requests. Public repositories cannot use native private-action sharing.
+
+The installer restores and saves Go caches per job and matrix variant. The shared Go setup also
+retains the separate linter and Terraform plugin caches.
+
 ## Fork workflow configuration
 
 This fork provides manual CI, launcher tests, and Windows builds. macOS runners and release,

@@ -1,5 +1,12 @@
 name: tests-launcher
 description: Run cloud-free launcher tests
+inputs:
+  setup-go-better-token:
+    description: Read-only contents token for the private Go installer
+    required: true
+  cache-scope:
+    description: Matrix variant namespace
+    default: ''
 runs:
   using: "composite"
   steps:
@@ -7,6 +14,9 @@ runs:
       uses: ./.github/actions/setup-python
     - name: Setup Go
       uses: ./.github/actions/setup-go
+      with:
+        setup-go-better-token: ${{ inputs.setup-go-better-token }}
+        cache-scope: ${{ inputs.cache-scope }}
     - name: Run launcher tests
       shell: bash
       run: task tests-launcher COVERAGE=true

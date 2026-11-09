@@ -21,6 +21,9 @@ jobs:
           # this is need because we use "git describe" to get the latest version from git       
           fetch-depth: 0
       - uses: ./.github/actions/build
+        with:
+          setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
+          cache-scope: ${{ toJSON(matrix) }}
 
       - name: Upload file (Windows)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

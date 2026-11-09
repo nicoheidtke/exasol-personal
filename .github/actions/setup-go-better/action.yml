@@ -1,0 +1,36 @@
+name: setup-go-better
+description: Check out the private Go installer and set up Go
+inputs:
+  token:
+    description: Read-only contents token for nicoheidtke/setup-go-better
+    required: true
+  go-version-file:
+    description: Go version manifest
+    default: go.mod
+  cache-scope:
+    description: Matrix variant namespace
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Check out private Go installer
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: nicoheidtke/setup-go-better
+        ref: 13f611572c059e38af11315888f7add1566bbb2e
+        token: ${{ inputs.token }}
+        path: .github/private-actions/setup-go-better
+        persist-credentials: false
+    - name: Set up Go
+      uses: ./.github/private-actions/setup-go-better
+      with:
+        go-version-file: ${{ inputs.go-version-file }}
+        cache: restore-save
+        cache-scope: ${{ inputs.cache-scope }}
+        cache-dependency-path: |
+          go.mod
+          go.sum
+          tools/devtools/go.mod
+          tools/devtools/go.sum
+          tools/cleanup/go.mod
+          tools/cleanup/go.sum

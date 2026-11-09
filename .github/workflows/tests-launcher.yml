@@ -56,4 +56,10 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/build
+        with:
+          setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
+          cache-scope: ${{ toJSON(matrix) }}
       - uses: ./.github/actions/tests-launcher
+        with:
+          setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
+          cache-scope: ${{ toJSON(matrix) }}
