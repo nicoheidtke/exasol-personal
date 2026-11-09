@@ -4,6 +4,15 @@ The project uses GitHub Actions for continuous integration and delivery. Workflo
 
 Security policy for public-repo CI is defined in [Repository Security and Automation Governance](repository_security_spec.md) and [CI Security Best Practices](ci_security_best_practices.md).
 
+## Fork workflow configuration
+
+This fork provides manual CI, launcher tests, and Windows builds. macOS runners and release,
+documentation-publication, deployment-test, cloud-cleanup, and Dependabot auto-merge workflows have
+been removed. Existing repository helpers for removed workflows are unavailable in this fork.
+
+The sections below describe the upstream configuration, retained as a reference for restoring or
+adapting the fork's automation.
+
 ## Automated Workflows
 
 ### CI Pipeline (`ci.yml`)
