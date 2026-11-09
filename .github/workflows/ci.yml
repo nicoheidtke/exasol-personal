@@ -27,6 +27,7 @@ jobs:
         with:
           setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
           cache-scope: ${{ toJSON(matrix) }}
+      - uses: ./.github/actions/setup-go-lint-cache
       - name: Lint Go code
         run: task lint-golang
       - name: Lint Terraform code
@@ -64,10 +65,11 @@ jobs:
         with:
           # this is need because we use "git describe" to get the latest version from git
           fetch-depth: 0
-      - uses: ./.github/actions/build
+      - uses: ./.github/actions/setup-go
         with:
           setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
           cache-scope: ${{ toJSON(matrix) }}
+      - uses: ./.github/actions/build
       # Checking the CLI reference here reuses the launcher this job just built,
       # instead of setting up Go and building it again in the lint job
       - uses: ./.github/actions/setup-python
@@ -96,10 +98,11 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/tests-unit
+      - uses: ./.github/actions/setup-go
         with:
           setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
           cache-scope: ${{ toJSON(matrix) }}
+      - uses: ./.github/actions/tests-unit
       - name: Upload coverage report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -128,10 +131,11 @@ jobs:
       - name: Make executable (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: chmod +x bin/exasol
-      - uses: ./.github/actions/tests-launcher
+      - uses: ./.github/actions/setup-go
         with:
           setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
           cache-scope: ${{ toJSON(matrix) }}
+      - uses: ./.github/actions/tests-launcher
 
   sonarqube:
     runs-on: ubuntu-latest

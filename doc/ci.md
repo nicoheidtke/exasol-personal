@@ -17,8 +17,8 @@ refs: these jobs receive the private-action token and can read the action's code
 pull request triggers, provide a setup path that works without repository secrets for untrusted and
 Dependabot pull requests. Public repositories cannot use native private-action sharing.
 
-The installer restores and saves Go caches per job and matrix variant. The shared Go setup also
-retains the separate linter and Terraform plugin caches.
+Each Go job sets up Go once and restores and saves its module and build caches per job and matrix
+variant. Only the lint job restores the separate linter analysis and Terraform plugin caches.
 
 ## Fork workflow configuration
 
