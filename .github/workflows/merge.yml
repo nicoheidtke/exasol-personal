@@ -3,8 +3,9 @@
 name: Main branch pushed - Build Windows and MacOS
 
 on:
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
+  workflow_dispatch:
 
 permissions: {}
 
