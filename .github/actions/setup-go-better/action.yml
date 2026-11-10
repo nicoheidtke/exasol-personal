@@ -17,7 +17,7 @@ runs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: nicoheidtke/setup-go-better
-        ref: e6e119a8b0b524a6ac1606d660c48603c11753df
+        ref: 4871ed7af80f1f2eede85493da35d67abbab64cf
         token: ${{ inputs.token }}
         path: .github/private-actions/setup-go-better
         persist-credentials: false
