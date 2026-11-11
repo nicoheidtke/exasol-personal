@@ -17,8 +17,38 @@ refs: these jobs receive the private-action token and can read the action's code
 pull request triggers, provide a setup path that works without repository secrets for untrusted and
 Dependabot pull requests. Public repositories cannot use native private-action sharing.
 
-Each Go job sets up Go once and restores and saves its module and build caches per job and matrix
-variant. Only the lint job restores the separate linter analysis and Terraform plugin caches.
+Go compilation jobs use split module and build caches. Build snapshots are saved on the repository's
+default branch; feature branches restore eligible snapshots and independently save changed modules.
+Workflow, job, OS, architecture, Go version, and matrix scope still isolate build caches. A shared
+module scope would share only downloaded modules, so it is not used to imply build-cache sharing.
+Only the lint job restores the separate linter analysis and Terraform plugin caches.
+
+CI runs Linux unit tests in the Linux build job, reusing its checkout, Go installation, and local
+caches. The unit task retains generation, race detection, coverage, and cleanup-module tests. Race
+instrumentation requires its own compilation even after a normal build. Launcher jobs download the
+matching OS executable and run it without rebuilding; Go remains installed for coverage conversion,
+with module and build caching disabled. The standalone launcher workflow builds and tests in one job
+and therefore retains caching.
+
+The lint jobs run in parallel, followed by the Linux and Windows build lanes in parallel, then both
+launcher lanes in parallel. SonarQube depends on the build and launcher results, subject to its event
+guard. The Linux build uploads both its executable and unit coverage. Existing artifact names remain
+the interface between producers and consumers.
+
+This removes one checkout, private-action checkout, Go setup, cache restore, and cache post-save
+phase from CI, while retaining executable and coverage artifact transfers. It can lengthen the
+build-matrix barrier before launcher tests: unit tests previously overlapped launcher tests, whereas
+now they overlap the Windows build. Compare total runner time and time to the final result, including
+setup, race compilation, artifact transfers, and post-job saves, on both cold and warm runs before
+claiming a latency improvement. Launcher cache transfers and snapshots are avoided entirely; feature
+compilation jobs skip build packing and upload but still check for changed modules.
+
+New or renamed workflow/job scopes start cold. Disabling build saves also prevents seeding on a
+miss: experiment-branch runs do not seed default-branch caches. After these changes reach the
+default branch, a successful trusted run there must seed each compilation job and matrix scope.
+Until then, accept cold compilation on feature branches. Use the action's cache-key/result logs and
+setup/post summaries to verify eligible fallback and save costs; a lookup key alone is not a hit.
+Trigger changes and hosted validation runs are separate from these workflow optimizations.
 
 ## Fork workflow configuration
 

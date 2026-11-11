@@ -7,6 +7,15 @@ inputs:
   go-version-file:
     description: Go version manifest
     default: go.mod
+  cache:
+    description: Go cache mode (off, restore, or restore-save)
+    default: restore-save
+  cache-layout:
+    description: Separate module and build snapshots
+    default: split
+  cache-build-save:
+    description: Save build snapshots on the default branch while saving changed modules independently
+    default: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
   cache-scope:
     description: Matrix variant namespace
     default: ''
@@ -17,7 +26,7 @@ runs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: nicoheidtke/setup-go-better
-        ref: 150fea1a02bd91f156872e576c83e76c9e896050
+        ref: 041a6b70347a6339a01e35b4694335174fde0679 # v0.0.0-preview.20261111.2
         token: ${{ inputs.token }}
         path: .github/private-actions/setup-go-better
         persist-credentials: false
@@ -25,7 +34,9 @@ runs:
       uses: ./.github/private-actions/setup-go-better
       with:
         go-version-file: ${{ inputs.go-version-file }}
-        cache: restore-save
+        cache: ${{ inputs.cache }}
+        cache-layout: ${{ inputs.cache-layout }}
+        cache-build-save: ${{ inputs.cache-build-save }}
         cache-compression: zstd
         cache-scope: ${{ inputs.cache-scope }}
         cache-dependency-path: |
