@@ -34,6 +34,8 @@ The lint jobs run in parallel, followed by the Linux and Windows build lanes in 
 launcher lanes in parallel. SonarQube depends on the build and launcher results, subject to its event
 guard. The Linux build uploads both its executable and unit coverage. Existing artifact names remain
 the interface between producers and consumers.
+The Linux job is labeled **Build + Go unit tests (Linux)**. Its run summary reports build and unit-test
+outcomes separately and links to the logs, where each stage has a named step.
 
 This removes one checkout, private-action checkout, Go setup, cache restore, and cache post-save
 phase from CI, while retaining executable and coverage artifact transfers. It can lengthen the

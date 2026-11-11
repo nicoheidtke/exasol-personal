@@ -51,6 +51,7 @@ jobs:
         run: task docs-check-standalone
 
   build:
+    name: ${{ startsWith(matrix.os, 'ubuntu') && 'Build + Go unit tests (Linux)' || 'Build (Windows)' }}
     runs-on: ${{ matrix.os }}
     needs:
       - lint-go
@@ -69,7 +70,9 @@ jobs:
         with:
           setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
           cache-scope: ${{ toJSON(matrix) }}
-      - uses: ./.github/actions/build
+      - name: Build launcher
+        id: build
+        uses: ./.github/actions/build
       # Checking the CLI reference here reuses the launcher this job just built,
       # instead of setting up Go and building it again in the lint job
       - uses: ./.github/actions/setup-python
@@ -90,7 +93,9 @@ jobs:
         with:
           name: exasol-${{ matrix.os }}
           path: bin/exasol
-      - uses: ./.github/actions/tests-unit
+      - name: Run Go unit tests (race and coverage)
+        id: unit-tests
+        uses: ./.github/actions/tests-unit
         if: startsWith(matrix.os, 'ubuntu')
       - name: Upload coverage report
         if: startsWith(matrix.os, 'ubuntu')
@@ -98,6 +103,21 @@ jobs:
         with:
           name: coverage-unit
           path: coverage-unit.out
+      - name: Summarize build and Go unit tests
+        if: ${{ always() && startsWith(matrix.os, 'ubuntu') }}
+        shell: bash
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          UNIT_TEST_OUTCOME: ${{ steps.unit-tests.outcome }}
+          JOB_LOG_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ job.check_run_id }}
+        run: |
+          {
+            printf '## Linux build and Go unit tests\n\n'
+            printf '| Stage | Result |\n| --- | --- |\n'
+            printf '| Build launcher | %s |\n' "${BUILD_OUTCOME:-skipped}"
+            printf '| Go unit tests (race and coverage) | %s |\n\n' "${UNIT_TEST_OUTCOME:-skipped}"
+            printf '[Open job logs](%s), then select **Build launcher** or **Run Go unit tests (race and coverage)**.\n' "$JOB_LOG_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   tests-launcher:
     runs-on: ${{ matrix.os }}
