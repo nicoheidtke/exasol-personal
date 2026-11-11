@@ -20,6 +20,10 @@ jobs:
         with:
           # this is need because we use "git describe" to get the latest version from git       
           fetch-depth: 0
+      - uses: ./.github/actions/setup-go
+        with:
+          setup-go-better-token: ${{ secrets.SETUP_GO_BETTER_TOKEN }}
+          cache-scope: ${{ toJSON(matrix) }}
       - uses: ./.github/actions/build
 
       - name: Upload file (Windows)

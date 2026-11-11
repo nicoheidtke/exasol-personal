@@ -3,8 +3,6 @@ description: Build the project
 runs:
   using: "composite"
   steps:
-    - name: Setup Go and Task
-      uses: ./.github/actions/setup-go
     - name: Build
       shell: bash
       env:

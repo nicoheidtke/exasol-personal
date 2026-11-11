@@ -39,3 +39,6 @@ ci-downloads/
 
 .claude
 .env
+
+# Private GitHub Actions checkout
+/.github/private-actions/

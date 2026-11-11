@@ -5,8 +5,6 @@ runs:
   steps:
     - name: Setup Python and Task
       uses: ./.github/actions/setup-python
-    - name: Setup Go
-      uses: ./.github/actions/setup-go
     - name: Run launcher tests
       shell: bash
       run: task tests-launcher COVERAGE=true

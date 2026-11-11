@@ -4,6 +4,42 @@ The project uses GitHub Actions for continuous integration and delivery. Workflo
 
 Security policy for public-repo CI is defined in [Repository Security and Automation Governance](repository_security_spec.md) and [CI Security Best Practices](ci_security_best_practices.md).
 
+## Private Go setup action
+
+Go jobs use [setup-go-better](https://github.com/nicoheidtke/setup-go-better) through an
+authenticated checkout pinned to a bundled distribution commit. Add the repository Actions secret
+`SETUP_GO_BETTER_TOKEN` using a fine-grained personal access token whose repository access is limited
+to `nicoheidtke/setup-go-better`, with **Contents: Read-only** permission. The checkout does not persist
+the token in Git configuration. The default `GITHUB_TOKEN` cannot read this private repository.
+
+This fork's workflows are manually dispatched while they are being adapted. Dispatch only trusted
+refs: these jobs receive the private-action token and can read the action's code. Before restoring
+pull request triggers, provide a setup path that works without repository secrets for untrusted and
+Dependabot pull requests. Public repositories cannot use native private-action sharing.
+
+Go compilation jobs use split module and build caches. Build snapshots are saved on the repository's
+default branch; feature branches restore eligible snapshots and independently save changed modules.
+Workflow, job, OS, architecture, Go version, and matrix scope still isolate build caches. A shared
+module scope would share only downloaded modules, so it is not used to imply build-cache sharing.
+Only the lint job restores the separate linter analysis and Terraform plugin caches.
+
+CI runs Go unit tests in a separate Linux job with its own module and build caches. The unit task
+retains generation, race detection, coverage, and cleanup-module tests. Launcher jobs download the
+matching OS executable and run it without rebuilding; Go remains installed for coverage conversion,
+with module and build caching disabled. The standalone launcher workflow builds and tests in one job
+and therefore retains caching.
+
+The lint jobs run in parallel, followed by the Linux and Windows builds in parallel. After both
+builds finish, unit tests and both launcher lanes run in parallel. SonarQube waits for unit and
+launcher results, subject to its event guard. Each Go job sets up Go once, and only the lint job
+restores linter analysis and Terraform plugin caches.
+
+New or renamed workflow/job scopes start cold. Disabling build saves also prevents seeding on a
+miss: experiment-branch runs do not seed default-branch caches. After these changes reach the
+default branch, a successful trusted run there must seed each compilation job and matrix scope.
+Until then, accept cold compilation on feature branches. Use the action's cache-key/result logs and
+setup/post summaries to verify eligible fallback and save costs; a lookup key alone is not a hit.
+
 ## Fork workflow configuration
 
 This fork provides manual CI, launcher tests, and Windows builds. macOS runners and release,
