@@ -17,7 +17,7 @@ runs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: nicoheidtke/setup-go-better
-        ref: 952566112acde233b6b762a78ebbceb743605f9a
+        ref: 150fea1a02bd91f156872e576c83e76c9e896050
         token: ${{ inputs.token }}
         path: .github/private-actions/setup-go-better
         persist-credentials: false
@@ -26,6 +26,7 @@ runs:
       with:
         go-version-file: ${{ inputs.go-version-file }}
         cache: restore-save
+        cache-compression: zstd
         cache-scope: ${{ inputs.cache-scope }}
         cache-dependency-path: |
           go.mod
