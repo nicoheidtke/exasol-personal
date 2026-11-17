@@ -37,6 +37,8 @@ jobs:
       - name: Lint Go code
         run: task lint-golang
       - name: Lint Terraform code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: task lint-terraform
 
   lint-python:

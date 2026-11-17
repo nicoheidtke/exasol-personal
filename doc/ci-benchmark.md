@@ -70,6 +70,8 @@ forcing an identical cache layout on actions with different designs.
 
 Only the lint job caches linter analysis and Terraform plugins. These auxiliary
 caches are also separated by candidate. The Python cache exists only in full runs.
+Terraform plugin installation uses the built-in GitHub token to avoid sharing
+the unauthenticated API quota of the runner's public IP address.
 These configurations use each action's available features; cache sharing, trimming
 and save frequency deliberately differ. Measure the complete cost and useful
 reuse before concluding that a particular setting is faster.
