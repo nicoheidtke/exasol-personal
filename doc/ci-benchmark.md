@@ -59,8 +59,10 @@ forcing an identical cache layout on actions with different designs.
   concurrency and build-save policy are retained. Lint uses a separate module
   scope so its developer-tool dependencies do not inflate build/test transfers.
 - WillAbides installs Go and exposes its cache paths to actions/cache. Module
-  snapshots are shared across build/test jobs and keyed by dependencies, with a
-  separate lint module group. Build snapshots
+  snapshots use workload-specific dependency keys and a shared build/test
+  fallback, with a separate lint module group. Unit compilation can restore the
+  launcher snapshot and save its additional dependencies under its own key;
+  an exact launcher hit cannot suppress that save. Build snapshots
   are per job and source revision, with fallback to the previous revision.
   Unchanged-revision hits avoid uploads; a new revision can retain newly compiled
   results without repacking the module cache.

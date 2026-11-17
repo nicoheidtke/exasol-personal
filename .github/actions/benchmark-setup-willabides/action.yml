@@ -21,7 +21,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.go.outputs.GOMODCACHE }}
-        key: willabides-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.go-version }}-${{ github.job == 'lint-go' && 'lint' || 'compile' }}-${{ github.job == 'lint-go' && hashFiles('**/go.sum') || hashFiles('go.sum', 'tools/cleanup/go.sum') }}
+        key: willabides-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.go-version }}-${{ github.job == 'lint-go' && 'lint' || 'compile' }}-${{ github.job == 'lint-go' && hashFiles('**/go.sum') || github.job == 'tests-unit' && hashFiles('go.sum', 'tools/cleanup/go.sum') || hashFiles('go.sum') }}
         restore-keys: |
           willabides-modules-${{ runner.os }}-${{ runner.arch }}-${{ inputs.go-version }}-${{ github.job == 'lint-go' && 'lint' || 'compile' }}-
     - name: Cache job build outputs
