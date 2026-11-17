@@ -1,0 +1,41 @@
+name: Benchmark willabides/setup-go-faster
+description: Set up this benchmark candidate with its cache policy.
+inputs:
+  go-version:
+    description: Exact Go version.
+    required: true
+  cache:
+    description: Enable module and build caching.
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/benchmark-environment
+      with:
+        candidate: willabides
+    - name: Set up Go
+      uses: willabides/setup-go-faster@fea1b51f8e1f07229131e4438f235ad219880d31 # v1.19.0
+      with:
+        go-version: ${{ inputs.go-version }}
+    - name: Cache Go modules and build outputs
+      if: inputs.cache == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ env.GOCACHE }}
+          ${{ env.GOMODCACHE }}
+        key: willabides-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          willabides-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ inputs.go-version }}-
+    - name: Record Go environment
+      shell: bash
+      run: |
+        go version
+        go env GOCACHE GOMODCACHE GOTOOLCHAIN
+        {
+          echo '### willabides/setup-go-faster v1.19.0'
+          echo 'Pinned action: `fea1b51f8e1f07229131e4438f235ad219880d31`'
+          echo "Go: $(go env GOVERSION)"
+          echo "Runner image: ${ImageOS:-unknown} / ${ImageVersion:-unknown}"
+          echo 'Go cache enabled: ${{ inputs.cache }}'
+        } >> "${GITHUB_STEP_SUMMARY}"

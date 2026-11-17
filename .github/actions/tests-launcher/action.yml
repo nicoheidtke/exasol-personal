@@ -1,11 +1,16 @@
 name: tests-launcher
 description: Run cloud-free launcher tests
+inputs:
+  setup-go:
+    description: Install Go before converting coverage data.
+    default: 'true'
 runs:
   using: "composite"
   steps:
     - name: Setup Python and Task
       uses: ./.github/actions/setup-python
     - name: Setup Go
+      if: inputs.setup-go == 'true'
       uses: ./.github/actions/setup-go
     - name: Run launcher tests
       shell: bash

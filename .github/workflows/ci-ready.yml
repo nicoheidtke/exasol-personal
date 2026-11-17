@@ -1,0 +1,146 @@
+name: CI benchmark - nicoheidtke/ready-setup-go
+run-name: "ready / ${{ inputs.full && 'full' || 'compile' }} / Go ${{ inputs.go-version }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Execute Go and Python tests and Python checks as well as compiling.
+        type: boolean
+        default: false
+      go-version:
+        description: Exact Go version, identical across comparison runs.
+        type: string
+        default: '1.27.4'
+
+permissions: {}
+
+# Serialize candidate runs; dispatch the next run after the previous one completes.
+concurrency:
+  group: go-ci-benchmark
+  cancel-in-progress: false
+
+jobs:
+  lint-go:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/benchmark-setup-ready
+        with:
+          go-version: ${{ inputs.go-version }}
+      - uses: ./.github/actions/benchmark-lint-cache
+        with:
+          candidate: ready
+          go-version: ${{ inputs.go-version }}
+      - name: Lint Go code
+        run: task lint-golang
+      - name: Lint Terraform code
+        run: task lint-terraform
+
+  lint-python:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Mock Python checks
+        if: ${{ !inputs.full }}
+        run: echo "Python setup, linting and documentation checks are skipped in compile mode."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: inputs.full
+      - uses: ./.github/actions/setup-python
+        if: inputs.full
+      - name: Lint ruff
+        if: inputs.full
+        run: task lint-ruff
+      - name: Lint mypy
+        if: inputs.full
+        run: task lint-mypy
+      - name: Check user documentation
+        if: inputs.full
+        run: task docs-check-standalone
+
+  build:
+    runs-on: ${{ matrix.os }}
+    needs: [lint-go, lint-python]
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/benchmark-setup-ready
+        with:
+          go-version: ${{ inputs.go-version }}
+      - name: Build launcher
+        uses: ./.github/actions/build
+        with:
+          setup-go: 'false'
+      - uses: ./.github/actions/setup-python
+        if: inputs.full && runner.os == 'Linux'
+      - name: Check the CLI reference
+        if: inputs.full && runner.os == 'Linux'
+        run: task docs-cli-verify
+      - name: Upload launcher
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: exasol-${{ matrix.os }}
+          path: bin/exasol${{ runner.os == 'Windows' && '.exe' || '' }}
+          if-no-files-found: error
+
+  tests-unit:
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/benchmark-setup-ready
+        with:
+          go-version: ${{ inputs.go-version }}
+      - name: Compile or execute Go unit tests
+        uses: ./.github/actions/tests-unit
+        with:
+          setup-go: 'false'
+          full: ${{ inputs.full }}
+      - name: Upload coverage report
+        if: inputs.full
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-unit
+          path: coverage-unit.out
+          if-no-files-found: error
+
+  tests-launcher:
+    if: inputs.full
+    runs-on: ${{ matrix.os }}
+    needs: build
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: exasol-${{ matrix.os }}
+          path: bin/
+      - name: Make launcher executable
+        if: runner.os == 'Linux'
+        run: chmod +x bin/exasol
+      - uses: ./.github/actions/benchmark-setup-ready
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache: 'false'
+      - uses: ./.github/actions/tests-launcher
+        with:
+          setup-go: 'false'

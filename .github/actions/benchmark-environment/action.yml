@@ -1,0 +1,22 @@
+name: Benchmark environment
+description: Isolate candidate and job caches and install Task.
+inputs:
+  candidate:
+    description: Candidate cache namespace.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Configure Go cache directories
+      shell: bash
+      env:
+        CANDIDATE: ${{ inputs.candidate }}
+      run: |
+        cache_root="${RUNNER_TEMP}/go-benchmark/${CANDIDATE}/${GITHUB_JOB}"
+        mkdir -p "${cache_root}/build" "${cache_root}/modules"
+        {
+          echo "GOCACHE=${cache_root}/build"
+          echo "GOMODCACHE=${cache_root}/modules"
+          echo "GOTOOLCHAIN=local"
+        } >> "${GITHUB_ENV}"
+    - uses: ./.github/actions/setup-task

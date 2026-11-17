@@ -1,0 +1,30 @@
+name: Benchmark lint cache
+description: Cache linter analysis and Terraform plugins for the Go lint job.
+inputs:
+  candidate:
+    description: Candidate cache namespace.
+    required: true
+  go-version:
+    description: Exact Go version.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Configure linter directories
+      shell: bash
+      run: |
+        lint_root="${RUNNER_TEMP}/go-benchmark/lint"
+        mkdir -p "${lint_root}/golangci" "${lint_root}/tflint"
+        {
+          echo "GOLANGCI_LINT_CACHE=${lint_root}/golangci"
+          echo "TFLINT_PLUGIN_DIR=${lint_root}/tflint"
+        } >> "${GITHUB_ENV}"
+    - name: Restore linter caches
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ env.GOLANGCI_LINT_CACHE }}
+          ${{ env.TFLINT_PLUGIN_DIR }}
+        key: benchmark-lint-${{ inputs.candidate }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.go-version }}-${{ hashFiles('**/go.sum', '.golangci.yml', '.tflint.hcl') }}
+        restore-keys: |
+          benchmark-lint-${{ inputs.candidate }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.go-version }}-

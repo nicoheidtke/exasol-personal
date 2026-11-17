@@ -1,10 +1,26 @@
 name: tests-unit
 description: Run Unit Tests
+inputs:
+  setup-go:
+    description: Install Go and Task before compiling or executing tests.
+    default: 'true'
+  full:
+    description: Execute tests instead of only compiling test binaries.
+    default: 'true'
 runs:
   using: "composite"
   steps:
     - name: Setup Go and Task
+      if: inputs.setup-go == 'true'
       uses: ./.github/actions/setup-go
+    - name: Compile unit tests without executing them
+      if: inputs.full != 'true'
+      shell: bash
+      run: |
+        task generate SKIP_EMBED=true
+        go test -c -o /dev/null -tags=containers_image_openpgp -race -cover -covermode=atomic ./...
+        go -C tools/cleanup test -c -o /dev/null ./...
     - name: Run Unit Tests
+      if: inputs.full == 'true'
       shell: bash
       run: task tests-unit COVERAGE=true

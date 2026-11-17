@@ -1,9 +1,14 @@
 name: build
 description: Build the project
+inputs:
+  setup-go:
+    description: Install Go and Task before building.
+    default: 'true'
 runs:
   using: "composite"
   steps:
     - name: Setup Go and Task
+      if: inputs.setup-go == 'true'
       uses: ./.github/actions/setup-go
     - name: Build
       shell: bash

@@ -1,0 +1,36 @@
+name: Benchmark nicoheidtke/ready-setup-go
+description: Set up this benchmark candidate with its cache policy.
+inputs:
+  go-version:
+    description: Exact Go version.
+    required: true
+  cache:
+    description: Enable module and build caching.
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/benchmark-environment
+      with:
+        candidate: ready
+    - name: Set up Go
+      uses: nicoheidtke/ready-setup-go@845e4cf7904c96cb050b6ea805ffa0ba618a34c2 # v1.0.1
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: ${{ inputs.cache == 'true' && 'restore-save' || 'off' }}
+        cache-layout: split
+        cache-storage: archive
+        cache-compression: zstd
+        cache-scope: ${{ runner.os }}-${{ runner.arch }}
+    - name: Record Go environment
+      shell: bash
+      run: |
+        go version
+        go env GOCACHE GOMODCACHE GOTOOLCHAIN
+        {
+          echo '### nicoheidtke/ready-setup-go v1.0.1'
+          echo 'Pinned action: `845e4cf7904c96cb050b6ea805ffa0ba618a34c2`'
+          echo "Go: $(go env GOVERSION)"
+          echo "Runner image: ${ImageOS:-unknown} / ${ImageVersion:-unknown}"
+          echo 'Go cache enabled: ${{ inputs.cache }}'
+        } >> "${GITHUB_STEP_SUMMARY}"

@@ -1,0 +1,42 @@
+name: Benchmark cloudx-io/setup-go
+description: Set up this benchmark candidate with its cache policy.
+inputs:
+  go-version:
+    description: Exact Go version.
+    required: true
+  cache:
+    description: Enable module and build caching.
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/benchmark-environment
+      with:
+        candidate: cloudx
+    - name: Set up Go with caching
+      if: inputs.cache == 'true'
+      uses: cloudx-io/setup-go@8b45cf394acf101459db0d47aa9735a4fe5eea63 # v1.0.0
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache-key-prefix: benchmark-cloudx-${{ github.job }}
+        cache-dependency-path: '**/go.sum'
+        max-staleness-hours: '2'
+    # The released CloudX action has no cache-off input; use its own installer dependency.
+    - name: Set up Go without caching
+      if: inputs.cache != 'true'
+      uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # CloudX v1.0.0 dependency
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: false
+    - name: Record Go environment
+      shell: bash
+      run: |
+        go version
+        go env GOCACHE GOMODCACHE GOTOOLCHAIN
+        {
+          echo '### cloudx-io/setup-go v1.0.0'
+          echo 'Pinned action: `8b45cf394acf101459db0d47aa9735a4fe5eea63`'
+          echo "Go: $(go env GOVERSION)"
+          echo "Runner image: ${ImageOS:-unknown} / ${ImageVersion:-unknown}"
+          echo 'Go cache enabled: ${{ inputs.cache }}'
+        } >> "${GITHUB_STEP_SUMMARY}"
