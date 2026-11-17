@@ -7,18 +7,19 @@ inputs:
   cache:
     description: Enable module and build caching.
     default: 'true'
+  cache-dependency-path:
+    description: Dependency manifests consumed by this workload.
+    default: '**/go.sum'
 runs:
   using: composite
   steps:
     - uses: ./.github/actions/benchmark-environment
-      with:
-        candidate: official
     - name: Set up Go
       uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
       with:
         go-version: ${{ inputs.go-version }}
         cache: ${{ inputs.cache }}
-        cache-dependency-path: '**/go.sum'
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
     - name: Record Go environment
       shell: bash
       run: |

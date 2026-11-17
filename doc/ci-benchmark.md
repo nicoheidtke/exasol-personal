@@ -42,24 +42,35 @@ checks; its total duration includes test execution.
 
 ## Candidate configuration
 
-Every candidate gets separate module/build directories per job. For the official
-action, the different paths also partition the built-in cache's version identity;
-its cache key alone does not show that partitioning. OS/architecture partitioning
-is retained. All dependency files are included. There is no blanket tool/module
-warmup in each job: each job builds the work it needs.
+Each candidate retains its native cache paths and can use its own sharing policy.
+All dependency files are included, and OS/architecture partitioning is retained.
+There is no blanket tool/module warmup in each job: each job builds the work it
+needs. Cache cleanup between candidates prevents cross-candidate reuse without
+forcing an identical cache layout on actions with different designs.
 
-- Official setup-go uses its built-in combined caching.
+- Official setup-go uses its built-in combined caching on the normal Go paths.
+  Lint hashes all module sums, builds hash the launcher sum, and unit tests hash
+  launcher/cleanup sums. These native dependency inputs give each workload an
+  appropriate snapshot instead of making coverage/race jobs consume only the
+  first lint snapshot. Exact hits retain the existing snapshot.
 - Ready uses restore/save, split module/build archives, zstd, and OS/architecture
-  scopes. Default transfer concurrency and build-save policy are retained.
-- WillAbides installs Go and then uses actions/cache for module/build directories,
-  with job/OS/architecture/version/dependency keys and dependency-change fallback.
-  An exact hit keeps the existing snapshot, as with ordinary actions/cache usage.
+  scopes. A shared build/test module scope lets trusted jobs reuse dependencies;
+  compiled results keep the action's native per-job isolation. Default transfer
+  concurrency and build-save policy are retained. Lint uses a separate module
+  scope so its developer-tool dependencies do not inflate build/test transfers.
+- WillAbides installs Go and exposes its cache paths to actions/cache. Module
+  snapshots are shared across build/test jobs and keyed by dependencies, with a
+  separate lint module group. Build snapshots
+  are per job and source revision, with fallback to the previous revision.
+  Unchanged-revision hits avoid uploads; a new revision can retain newly compiled
+  results without repacking the module cache.
 - CloudX uses a job-specific prefix and its default two-hour build-cache trimming.
 
 Only the lint job caches linter analysis and Terraform plugins. These auxiliary
 caches are also separated by candidate. The Python cache exists only in full runs.
-These are starting configurations for this workload, not claims that every tuning
-choice is optimal.
+These configurations use each action's available features; cache sharing, trimming
+and save frequency deliberately differ. Measure the complete cost and useful
+reuse before concluding that a particular setting is faster.
 
 ## Manual cold and warm runs
 
@@ -71,7 +82,7 @@ Run one candidate batch at a time:
 1. Wait for all runs to finish. Delete the fork's caches before the cold run,
    including caches on `main` that could otherwise provide fallback.
 2. Run the candidate once and confirm cache misses and successful post-job saves.
-3. Run it three or more times with unchanged inputs/source and confirm restores.
+3. Run it three times with unchanged inputs/source and confirm restores.
 4. Record results, then clear caches before the next candidate.
 
 For example, from a shell authenticated to this fork:
@@ -88,8 +99,8 @@ All four workflows share a concurrency group so only one benchmark runs at a tim
 GitHub normally retains only one pending run in such a group: dispatch the next
 run after the previous one completes, rather than submitting a whole batch.
 
-A cold pipeline can still have warm later jobs because caches produced by earlier
-jobs may be eligible for reuse. Job-specific caches here limit that sharing;
+A cold pipeline can have warm later jobs because caches produced by earlier jobs
+may be eligible for reuse. Preserve that benefit where the action supports it;
 confirm the actual restore logs. Deleting repository caches does not remove
 preinstalled Go versions or image-provided files from hosted runners.
 

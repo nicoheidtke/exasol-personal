@@ -11,14 +11,13 @@ runs:
   using: composite
   steps:
     - uses: ./.github/actions/benchmark-environment
-      with:
-        candidate: ready
     - name: Set up Go
       uses: nicoheidtke/ready-setup-go@845e4cf7904c96cb050b6ea805ffa0ba618a34c2 # v1.0.1
       with:
         go-version: ${{ inputs.go-version }}
         cache: ${{ inputs.cache == 'true' && 'restore-save' || 'off' }}
         cache-layout: split
+        cache-module-scope: ${{ github.job == 'lint-go' && 'ci-lint-modules' || 'ci-compile-modules' }}
         cache-storage: archive
         cache-compression: zstd
         cache-scope: ${{ runner.os }}-${{ runner.arch }}

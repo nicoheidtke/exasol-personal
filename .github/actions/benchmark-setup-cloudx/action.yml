@@ -11,8 +11,6 @@ runs:
   using: composite
   steps:
     - uses: ./.github/actions/benchmark-environment
-      with:
-        candidate: cloudx
     - name: Set up Go with caching
       if: inputs.cache == 'true'
       uses: cloudx-io/setup-go@8b45cf394acf101459db0d47aa9735a4fe5eea63 # v1.0.0
