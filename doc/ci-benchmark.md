@@ -6,7 +6,7 @@ are manual and use the same workload and job dependencies.
 | Workflow file | Candidate | Pinned release |
 | --- | --- | --- |
 | `ci.yml` | `actions/setup-go` | v7.1.0 |
-| `ci-ready.yml` | `nicoheidtke/ready-setup-go` | v2.0.0 |
+| `ci-ready.yml` | `nicoheidtke/ready-setup-go` | v2.1.0 |
 | `ci-willabides.yml` | `willabides/setup-go-faster` plus `actions/cache` | v1.19.0 |
 | `ci-cloudx.yml` | `cloudx-io/setup-go` | v1.0.0 |
 
