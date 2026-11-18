@@ -60,8 +60,9 @@ forcing an identical cache layout on actions with different designs.
   baselines on the default branch; dependency-matching restores skip save-time
   scanning and uploads. Source-only changes do not refresh compiled results.
   Lint uses a separate module scope so its developer-tool dependencies do not
-  inflate build/test transfers. Earlier v1.0.1 measurements retain that release's
-  refresh policy and must be reported separately from new v2 measurements.
+  inflate build/test transfers. Builds identify launcher dependencies; unit jobs
+  identify launcher and cleanup dependencies, allowing a compatible shared module
+  restore to seed a complete unit baseline instead of suppressing its save.
 - WillAbides installs Go and exposes its cache paths to actions/cache. Module
   snapshots use workload-specific dependency keys and a shared build/test
   fallback, with a separate lint module group. Unit compilation can restore the

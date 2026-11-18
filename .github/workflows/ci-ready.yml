@@ -79,6 +79,7 @@ jobs:
       - uses: ./.github/actions/benchmark-setup-ready
         with:
           go-version: ${{ inputs.go-version }}
+          cache-dependency-path: go.sum
       - name: Build launcher
         uses: ./.github/actions/build
         with:
@@ -105,6 +106,9 @@ jobs:
       - uses: ./.github/actions/benchmark-setup-ready
         with:
           go-version: ${{ inputs.go-version }}
+          cache-dependency-path: |
+            go.sum
+            tools/cleanup/go.sum
       - name: Compile or execute Go unit tests
         uses: ./.github/actions/tests-unit
         with:

@@ -7,6 +7,9 @@ inputs:
   cache:
     description: Enable module and build caching.
     default: 'true'
+  cache-dependency-path:
+    description: Dependency manifests consumed by this workload; empty scans all modules.
+    default: ''
 runs:
   using: composite
   steps:
@@ -16,6 +19,7 @@ runs:
       with:
         go-version: ${{ inputs.go-version }}
         cache: ${{ inputs.cache == 'true' && 'restore-save' || 'off' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
         cache-layout: split
         cache-module-scope: ${{ github.job == 'lint-go' && 'ci-lint-modules' || 'ci-compile-modules' }}
         cache-storage: archive
