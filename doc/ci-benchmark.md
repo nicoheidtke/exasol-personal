@@ -6,7 +6,7 @@ are manual and use the same workload and job dependencies.
 | Workflow file | Candidate | Pinned release |
 | --- | --- | --- |
 | `ci.yml` | `actions/setup-go` | v7.1.0 |
-| `ci-ready.yml` | `nicoheidtke/ready-setup-go` | v1.0.1 |
+| `ci-ready.yml` | `nicoheidtke/ready-setup-go` | v2.0.0 |
 | `ci-willabides.yml` | `willabides/setup-go-faster` plus `actions/cache` | v1.19.0 |
 | `ci-cloudx.yml` | `cloudx-io/setup-go` | v1.0.0 |
 
@@ -56,8 +56,12 @@ forcing an identical cache layout on actions with different designs.
 - Ready uses restore/save, split module/build archives, zstd, and OS/architecture
   scopes. A shared build/test module scope lets trusted jobs reuse dependencies;
   compiled results keep the action's native per-job isolation. Default transfer
-  concurrency and build-save policy are retained. Lint uses a separate module
-  scope so its developer-tool dependencies do not inflate build/test transfers.
+  concurrency is retained. Version 2 defaults to saving missing dependency
+  baselines on the default branch; dependency-matching restores skip save-time
+  scanning and uploads. Source-only changes do not refresh compiled results.
+  Lint uses a separate module scope so its developer-tool dependencies do not
+  inflate build/test transfers. Earlier v1.0.1 measurements retain that release's
+  refresh policy and must be reported separately from new v2 measurements.
 - WillAbides installs Go and exposes its cache paths to actions/cache. Module
   snapshots use workload-specific dependency keys and a shared build/test
   fallback, with a separate lint module group. Unit compilation can restore the

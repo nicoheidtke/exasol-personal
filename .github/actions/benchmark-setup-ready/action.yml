@@ -12,7 +12,7 @@ runs:
   steps:
     - uses: ./.github/actions/benchmark-environment
     - name: Set up Go
-      uses: nicoheidtke/ready-setup-go@845e4cf7904c96cb050b6ea805ffa0ba618a34c2 # v1.0.1
+      uses: nicoheidtke/ready-setup-go@15d4503a42effc6b98cdb6adc3821346a0eb1ba0 # v2.0.0
       with:
         go-version: ${{ inputs.go-version }}
         cache: ${{ inputs.cache == 'true' && 'restore-save' || 'off' }}
@@ -27,8 +27,8 @@ runs:
         go version
         go env GOCACHE GOMODCACHE GOTOOLCHAIN
         {
-          echo '### nicoheidtke/ready-setup-go v1.0.1'
-          echo 'Pinned action: `845e4cf7904c96cb050b6ea805ffa0ba618a34c2`'
+          echo '### nicoheidtke/ready-setup-go v2.0.0'
+          echo 'Pinned action: `15d4503a42effc6b98cdb6adc3821346a0eb1ba0`'
           echo "Go: $(go env GOVERSION)"
           echo "Runner image: ${ImageOS:-unknown} / ${ImageVersion:-unknown}"
           echo 'Go cache enabled: ${{ inputs.cache }}'
