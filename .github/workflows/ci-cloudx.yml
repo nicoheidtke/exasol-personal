@@ -79,6 +79,7 @@ jobs:
       - uses: ./.github/actions/benchmark-setup-cloudx
         with:
           go-version: ${{ inputs.go-version }}
+          cache-dependency-path: go.sum
       - name: Build launcher
         uses: ./.github/actions/build
         with:

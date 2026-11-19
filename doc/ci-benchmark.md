@@ -71,7 +71,12 @@ forcing an identical cache layout on actions with different designs.
   are per job and source revision, with fallback to the previous revision.
   Unchanged-revision hits avoid uploads; a new revision can retain newly compiled
   results without repacking the module cache.
-- CloudX uses a job-specific prefix and its default two-hour build-cache trimming.
+- CloudX shares a compile prefix between build and unit jobs, with a separate
+  lint prefix and automatic OS/architecture isolation. Builds hash `go.sum`;
+  unit jobs hash `**/go.sum` because the action accepts one glob. Distinct hashes
+  allow the cold unit job to restore the launcher snapshot by prefix and save
+  its additional dependencies and compiled results under its own key. Combined
+  module/build archives and default two-hour build-cache trimming are retained.
 
 Only the lint job caches linter analysis and Terraform plugins. These auxiliary
 caches are also separated by candidate. The Python cache exists only in full runs.

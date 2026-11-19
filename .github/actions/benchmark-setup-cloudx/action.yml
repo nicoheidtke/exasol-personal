@@ -7,6 +7,9 @@ inputs:
   cache:
     description: Enable module and build caching.
     default: 'true'
+  cache-dependency-path:
+    description: Single dependency glob identifying this workload's snapshot.
+    default: '**/go.sum'
 runs:
   using: composite
   steps:
@@ -16,8 +19,8 @@ runs:
       uses: cloudx-io/setup-go@8b45cf394acf101459db0d47aa9735a4fe5eea63 # v1.0.0
       with:
         go-version: ${{ inputs.go-version }}
-        cache-key-prefix: benchmark-cloudx-${{ github.job }}
-        cache-dependency-path: '**/go.sum'
+        cache-key-prefix: benchmark-cloudx-${{ github.job == 'lint-go' && 'lint' || 'compile' }}
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
         max-staleness-hours: '2'
     # The released CloudX action has no cache-off input; use its own installer dependency.
     - name: Set up Go without caching
